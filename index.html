@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#172033">
+  <meta name="description" content="專注於買多少、賣多少、轉出多少的投資紀律執行工具">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+  <title>財富紀律</title>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">WEALTH DISCIPLINE</div>
+      <h1>財富紀律</h1>
+      <div id="today" class="muted"></div>
+    </div>
+    <div class="top-actions">
+      <button id="refreshPrices" class="icon-button" title="更新收盤價">↻</button>
+      <button id="openSettings" class="icon-button" title="設定">⚙</button>
+    </div>
+  </header>
+
+  <div id="networkBanner" class="banner hidden"></div>
+
+  <main>
+    <section id="homeView" class="view">
+      <article class="hero">
+        <div class="hero-label">已轉出 · 真正落袋的財富</div>
+        <div id="transferredHero" class="hero-value">NT$0</div>
+        <div class="progress-row">
+          <div><span class="muted-on-dark">本金回收率</span> <strong id="recoveryRate">0%</strong></div>
+          <div id="stageLabel" class="stage-pill">回本階段</div>
+        </div>
+        <div class="progress"><div id="recoveryBar"></div></div>
+      </article>
+
+      <div class="section-heading">
+        <div><h2>今日建議操作</h2><p>首頁只顯示已達條件的股票。</p></div>
+        <span id="taskCount" class="count-pill">0</span>
+      </div>
+      <div id="taskList"></div>
+
+      <div class="section-heading"><div><h2>資產摘要</h2><p>股票、現金、已轉出三種狀態。</p></div></div>
+      <div class="metrics">
+        <article class="metric"><span>股票市值</span><strong id="stockValue">NT$0</strong></article>
+        <article class="metric"><span>可投資現金</span><strong id="cashValue">NT$0</strong></article>
+        <article class="metric"><span>投入本金</span><strong id="principalValue">NT$0</strong></article>
+        <article class="metric"><span>總財富</span><strong id="wealthValue">NT$0</strong></article>
+      </div>
+    </section>
+
+    <section id="holdingsView" class="view hidden">
+      <div class="section-heading">
+        <div><h2>持股</h2><p>買進前已完成評估，這裡只管理部位與價格。</p></div>
+      </div>
+      <div id="holdingList"></div>
+    </section>
+
+    <section id="cashView" class="view hidden">
+      <div class="section-heading"><div><h2>資金</h2><p>管理投入本金、投資現金與永久轉出。</p></div></div>
+      <div class="metrics">
+        <article class="metric"><span>可投資現金</span><strong id="cashPageValue">NT$0</strong></article>
+        <article class="metric"><span>累計已轉出</span><strong id="transferPageValue">NT$0</strong></article>
+      </div>
+      <article class="panel">
+        <h3>資金動作</h3>
+        <div class="button-grid">
+          <button class="primary" data-open-action="capital">投入本金</button>
+          <button class="secondary" data-open-action="transfer">轉出系統</button>
+        </div>
+      </article>
+      <article class="panel">
+        <h3>轉出策略</h3>
+        <div class="strategy-summary">
+          <div><span>本金回收前</span><strong id="preRateSummary">10%</strong></div>
+          <div><span>本金回收後</span><strong id="postRateSummary">50%</strong></div>
+        </div>
+      </article>
+    </section>
+
+    <section id="historyView" class="view hidden">
+      <div class="section-heading"><div><h2>紀錄</h2><p>所有成交、入金、轉出與設定變更。</p></div></div>
+      <div class="filters">
+        <button class="filter active" data-filter="all">全部</button>
+        <button class="filter" data-filter="buy">買進</button>
+        <button class="filter" data-filter="sell">賣出</button>
+        <button class="filter" data-filter="capital">入金</button>
+        <button class="filter" data-filter="transfer">轉出</button>
+      </div>
+      <article class="panel" id="historyList"></article>
+    </section>
+
+    <section id="backupView" class="view hidden">
+      <div class="section-heading"><div><h2>備份</h2><p>資料保存在目前裝置，請定期備份。</p></div></div>
+      <article class="panel">
+        <button id="exportData" class="primary full">匯出 JSON 備份</button>
+        <button id="importDataButton" class="secondary full">匯入 JSON 備份</button>
+        <input id="importData" type="file" accept=".json,application/json" hidden>
+      </article>
+      <div class="warning">Windows 與 Android 會各自保存一份資料，不會自動同步。換裝置時請先匯出，再於另一台裝置匯入。</div>
+    </section>
+  </main>
+</div>
+
+<button id="fab" class="fab" aria-label="新增">＋</button>
+
+<nav class="bottom-nav">
+  <button class="nav active" data-view="home"><b>⌂</b><span>首頁</span></button>
+  <button class="nav" data-view="holdings"><b>▦</b><span>持股</span></button>
+  <button class="nav" data-view="cash"><b>＄</b><span>資金</span></button>
+  <button class="nav" data-view="history"><b>≡</b><span>紀錄</span></button>
+  <button class="nav" data-view="backup"><b>⇩</b><span>備份</span></button>
+</nav>
+
+<dialog id="actionDialog">
+  <form method="dialog" class="dialog-card" id="actionForm">
+    <div class="dialog-title">
+      <div><div class="eyebrow">RECORD</div><h2 id="actionTitle">新增紀錄</h2></div>
+      <button value="cancel" class="close">×</button>
+    </div>
+    <label>類型
+      <select id="actionType">
+        <option value="stock">新增／更新股票</option>
+        <option value="buy">買進成交</option>
+        <option value="sell">賣出成交</option>
+        <option value="price">手動更新價格</option>
+        <option value="capital">投入本金</option>
+        <option value="transfer">轉出投資系統</option>
+      </select>
+    </label>
+
+    <div id="stockLookupFields">
+      <label>股票代號
+        <div class="inline">
+          <input id="stockCode" inputmode="numeric" autocomplete="off" placeholder="例如 2330">
+          <button type="button" id="lookupStock" class="secondary compact">查詢</button>
+        </div>
+      </label>
+      <div id="lookupStatus" class="status-text"></div>
+      <label>股票名稱
+        <input id="stockName" placeholder="查詢後自動帶入，也可手動輸入">
+      </label>
+    </div>
+
+    <label id="stockSelectField">股票
+      <select id="stockSelect"></select>
+    </label>
+
+    <div id="tradeFields" class="two-col">
+      <label>成交單價<input id="tradePrice" type="number" min="0" step="0.01"></label>
+      <label>成交股數<input id="tradeQty" type="number" min="1" step="1"></label>
+    </div>
+
+    <div id="stockStrategyFields">
+      <div class="two-col">
+        <label>建議買進價<input id="buyTarget" type="number" min="0" step="0.01"></label>
+        <label>建議買進股數<input id="buyQty" type="number" min="0" step="1"></label>
+      </div>
+      <div class="two-col">
+        <label>建議賣出價<input id="sellTarget" type="number" min="0" step="0.01"></label>
+        <label>建議賣出股數<input id="sellQty" type="number" min="0" step="1"></label>
+      </div>
+    </div>
+
+    <label id="amountField">金額<input id="amount" type="number" min="0" step="1"></label>
+
+    <div class="dialog-actions">
+      <button value="cancel" class="secondary">取消</button>
+      <button type="button" id="saveAction" class="primary">儲存</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="completeDialog">
+  <form method="dialog" class="dialog-card">
+    <div class="dialog-title"><div><div class="eyebrow">EXECUTION</div><h2 id="completeTitle">確認成交</h2></div><button value="cancel" class="close">×</button></div>
+    <input id="completeCode" type="hidden"><input id="completeSide" type="hidden">
+    <div class="two-col">
+      <label>實際成交單價<input id="completePrice" type="number" min="0" step="0.01"></label>
+      <label>實際成交股數<input id="completeQty" type="number" min="1" step="1"></label>
+    </div>
+    <div class="dialog-actions">
+      <button value="cancel" class="secondary">取消</button>
+      <button type="button" id="confirmComplete" class="primary">完成並記帳</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="settingsDialog">
+  <form method="dialog" class="dialog-card">
+    <div class="dialog-title"><div><div class="eyebrow">SETTINGS</div><h2>策略設定</h2></div><button value="cancel" class="close">×</button></div>
+    <div class="two-col">
+      <label>回本前轉出比例（%）<input id="preRate" type="number" min="0" max="100" step="1"></label>
+      <label>回本後轉出比例（%）<input id="postRate" type="number" min="0" max="100" step="1"></label>
+    </div>
+    <div class="two-col">
+      <label>買進手續費率（%）<input id="buyFeeRate" type="number" min="0" step="0.0001"></label>
+      <label>賣出手續費率（%）<input id="sellFeeRate" type="number" min="0" step="0.0001"></label>
+    </div>
+    <label>證券交易稅率（%）<input id="taxRate" type="number" min="0" step="0.0001"></label>
+    <label>交易數量模式
+      <select id="lotMode"><option value="mixed">整股與零股皆可</option><option value="round">整張優先（1,000 股）</option><option value="odd">零股</option></select>
+    </label>
+    <div class="dialog-actions">
+      <button value="cancel" class="secondary">取消</button>
+      <button type="button" id="saveSettings" class="primary">儲存</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="app.js"></script>
+</body>
+</html>
