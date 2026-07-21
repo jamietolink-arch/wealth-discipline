@@ -1,206 +1,60 @@
-<!doctype html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#152033">
-  <meta name="description" content="買多少、賣多少、轉出多少的投資紀律執行工具">
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css">
-  <title>財富紀律 V4</title>
-</head>
-<body>
-<div class="app">
-  <header>
-    <div>
-      <div class="eyebrow">WEALTH DISCIPLINE · V4</div>
-      <h1>財富紀律</h1>
-      <p id="today"></p>
-    </div>
-    <div class="header-actions">
-      <button id="refreshButton" class="icon-button" aria-label="更新市場資料">↻</button>
-      <button id="settingsButton" class="icon-button" aria-label="設定">⚙</button>
-    </div>
-  </header>
+# 財富紀律 V4.1｜免隱藏資料夾版
 
-  <div id="banner" class="banner hidden"></div>
+這一版把 GitHub Actions 工作流程另外拆成一個看得見的檔案，
+避免 Windows 把 `.github` 隱藏，導致漏傳。
 
-  <main>
-    <section id="homeView" class="view">
-      <article class="hero">
-        <span>已轉出 · 真正落袋的財富</span>
-        <strong id="transferredHero">NT$0</strong>
-        <div class="hero-row">
-          <span>本金回收率 <b id="recoveryRate">0%</b></span>
-          <em id="stageLabel">本金回收階段</em>
-        </div>
-        <div class="progress"><i id="progressBar"></i></div>
-      </article>
+## 第一步：更新網站檔案
 
-      <div class="section-title">
-        <div><h2>今日建議操作</h2><p>只有達到條件的股票會出現。</p></div>
-        <b id="taskCount">0</b>
-      </div>
-      <div id="taskList"></div>
+把以下 6 個檔案上傳到 Repository 根目錄並覆蓋舊檔：
 
-      <div class="section-title"><div><h2>資產摘要</h2><p>股票、現金、已轉出。</p></div></div>
-      <div class="metrics">
-        <article><span>股票市值</span><strong id="stockValue">NT$0</strong></article>
-        <article><span>可投資現金</span><strong id="cashValue">NT$0</strong></article>
-        <article><span>投入本金</span><strong id="principalValue">NT$0</strong></article>
-        <article><span>總財富</span><strong id="wealthValue">NT$0</strong></article>
-      </div>
-    </section>
+- index.html
+- styles.css
+- app.js
+- manifest.json
+- sw.js
+- market-data.json
 
-    <section id="holdingsView" class="view hidden">
-      <div class="section-title"><div><h2>持股</h2><p>管理部位、價格與下一次操作。</p></div></div>
-      <div id="holdingList"></div>
-    </section>
+請不要把「工作流程檔案_請勿直接放根目錄.yml」直接放在根目錄；
+它必須建立在 GitHub 指定位置。
 
-    <section id="cashView" class="view hidden">
-      <div class="section-title"><div><h2>資金</h2><p>投入、保留與永久轉出。</p></div></div>
-      <div class="metrics two">
-        <article><span>可投資現金</span><strong id="cashPageValue">NT$0</strong></article>
-        <article><span>累計已轉出</span><strong id="transferPageValue">NT$0</strong></article>
-      </div>
-      <article class="panel">
-        <h3>資金動作</h3>
-        <div class="button-row">
-          <button class="primary" data-action="capital">投入本金</button>
-          <button class="secondary" data-action="transfer">轉出系統</button>
-        </div>
-      </article>
-      <article class="panel">
-        <h3>目前轉出規則</h3>
-        <div class="rule-grid">
-          <div><span>本金回收前</span><strong id="preRateSummary">10%</strong></div>
-          <div><span>本金回收後</span><strong id="postRateSummary">50%</strong></div>
-        </div>
-      </article>
-    </section>
+## 第二步：在 GitHub 建立工作流程
 
-    <section id="historyView" class="view hidden">
-      <div class="section-title"><div><h2>紀錄</h2><p>成交、入金、轉出與設定變更。</p></div></div>
-      <div class="filters">
-        <button class="active" data-filter="all">全部</button>
-        <button data-filter="buy">買進</button>
-        <button data-filter="sell">賣出</button>
-        <button data-filter="capital">入金</button>
-        <button data-filter="transfer">轉出</button>
-      </div>
-      <article id="historyList" class="panel"></article>
-    </section>
+在 Repository 首頁操作：
 
-    <section id="backupView" class="view hidden">
-      <div class="section-title"><div><h2>備份</h2><p>跨裝置時用 JSON 搬移資料。</p></div></div>
-      <article class="panel">
-        <button id="exportButton" class="primary full">匯出 JSON 備份</button>
-        <button id="importButton" class="secondary full">匯入 JSON 備份</button>
-        <input id="importFile" hidden type="file" accept=".json,application/json">
-      </article>
-      <div class="warning">Windows 與 Android 目前不會自動同步。換裝置前先匯出，再於另一台裝置匯入。</div>
-      <article class="panel">
-        <h3>市場資料狀態</h3>
-        <p id="marketStatus" class="muted">尚未讀取。</p>
-      </article>
-    </section>
-  </main>
-</div>
+1. 按 `Add file`
+2. 選 `Create new file`
+3. 在檔名欄完整輸入：
 
-<button id="fab" class="fab">＋</button>
+   `.github/workflows/update-market-data.yml`
 
-<nav>
-  <button class="nav active" data-view="home"><b>⌂</b><span>首頁</span></button>
-  <button class="nav" data-view="holdings"><b>▦</b><span>持股</span></button>
-  <button class="nav" data-view="cash"><b>＄</b><span>資金</span></button>
-  <button class="nav" data-view="history"><b>≡</b><span>紀錄</span></button>
-  <button class="nav" data-view="backup"><b>⇩</b><span>備份</span></button>
-</nav>
+4. 打開本資料夾中的：
 
-<dialog id="recordDialog">
-  <form method="dialog" class="dialog-card">
-    <div class="dialog-head"><div><div class="eyebrow">RECORD</div><h2>新增紀錄</h2></div><button value="cancel">×</button></div>
-    <label>類型<select id="recordType">
-      <option value="stock">新增／更新股票</option>
-      <option value="buy">買進成交</option>
-      <option value="sell">賣出成交</option>
-      <option value="price">手動更新價格</option>
-      <option value="capital">投入本金</option>
-      <option value="transfer">轉出投資系統</option>
-    </select></label>
+   `工作流程檔案_請勿直接放根目錄.yml`
 
-    <div id="stockLookupBlock">
-      <label>股票代號
-        <div class="inline">
-          <input id="stockCode" inputmode="numeric" placeholder="例如 2330">
-          <button type="button" id="lookupButton" class="secondary compact">查詢</button>
-        </div>
-      </label>
-      <div id="lookupStatus" class="status"></div>
-      <label>股票名稱<input id="stockName" placeholder="自動帶入，也可手動輸入"></label>
-    </div>
+5. 全選內容、複製，貼進 GitHub 編輯區
+6. 按 `Commit changes`
 
-    <label id="stockSelectBlock">股票<select id="stockSelect"></select></label>
+建立成功後，Repository 的 Actions 頁面左側會出現：
 
-    <div id="tradeBlock" class="two-col">
-      <label>成交單價<input id="tradePrice" type="number" min="0" step="0.01"></label>
-      <label>成交股數<input id="tradeQty" type="number" min="1" step="1"></label>
-    </div>
+`Update Taiwan market data`
 
-    <div id="strategyBlock">
-      <div class="two-col">
-        <label>建議買進價<input id="buyTarget" type="number" min="0" step="0.01"></label>
-        <label>建議買進股數<input id="buyQty" type="number" min="0" step="1"></label>
-      </div>
-      <div class="two-col">
-        <label>建議賣出價<input id="sellTarget" type="number" min="0" step="0.01"></label>
-        <label>建議賣出股數<input id="sellQty" type="number" min="0" step="1"></label>
-      </div>
-    </div>
+## 第三步：第一次執行
 
-    <label id="amountBlock">金額<input id="amount" type="number" min="0" step="1"></label>
+1. 點上方 `Actions`
+2. 左側點 `Update Taiwan market data`
+3. 點右側 `Run workflow`
+4. 再按綠色 `Run workflow`
+5. 等待約 1–2 分鐘
+6. 回到網站重新整理
 
-    <div class="dialog-actions">
-      <button value="cancel" class="secondary">取消</button>
-      <button type="button" id="saveRecord" class="primary">儲存</button>
-    </div>
-  </form>
-</dialog>
+## 為什麼要這樣做？
 
-<dialog id="completeDialog">
-  <form method="dialog" class="dialog-card">
-    <div class="dialog-head"><div><div class="eyebrow">EXECUTION</div><h2 id="completeTitle">確認成交</h2></div><button value="cancel">×</button></div>
-    <input id="completeCode" type="hidden"><input id="completeSide" type="hidden">
-    <div class="two-col">
-      <label>實際成交單價<input id="completePrice" type="number" min="0" step="0.01"></label>
-      <label>實際成交股數<input id="completeQty" type="number" min="1" step="1"></label>
-    </div>
-    <div class="dialog-actions">
-      <button value="cancel" class="secondary">取消</button>
-      <button type="button" id="completeTrade" class="primary">完成並記帳</button>
-    </div>
-  </form>
-</dialog>
+GitHub 只會執行放在：
 
-<dialog id="settingsDialog">
-  <form method="dialog" class="dialog-card">
-    <div class="dialog-head"><div><div class="eyebrow">SETTINGS</div><h2>策略設定</h2></div><button value="cancel">×</button></div>
-    <div class="two-col">
-      <label>回本前轉出（%）<input id="preRate" type="number" min="0" max="100"></label>
-      <label>回本後轉出（%）<input id="postRate" type="number" min="0" max="100"></label>
-    </div>
-    <div class="two-col">
-      <label>買進手續費率（%）<input id="buyFeeRate" type="number" min="0" step="0.0001"></label>
-      <label>賣出手續費率（%）<input id="sellFeeRate" type="number" min="0" step="0.0001"></label>
-    </div>
-    <label>證券交易稅率（%）<input id="taxRate" type="number" min="0" step="0.0001"></label>
-    <div class="dialog-actions">
-      <button value="cancel" class="secondary">取消</button>
-      <button type="button" id="saveSettings" class="primary">儲存</button>
-    </div>
-  </form>
-</dialog>
+`.github/workflows/`
 
-<script src="app.js"></script>
-</body>
-</html>
+裡面的 YAML 檔案。放在 Repository 根目錄不會生效。
+
+## 網站網址
+
+https://jamietolink-arch.github.io/wealth-discipline/

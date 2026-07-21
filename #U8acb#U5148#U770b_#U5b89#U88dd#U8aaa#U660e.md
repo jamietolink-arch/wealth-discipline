@@ -41,6 +41,13 @@ jobs:
 
           stocks = {}
           sources = []
+          trading_dates = []
+
+          def normalize_date(value):
+              text = str(value or "").strip()
+              if len(text) == 8 and text.isdigit():
+                  return f"{text[:4]}-{text[4:6]}-{text[6:]}"
+              return text
 
           try:
               rows = get("https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL")
@@ -50,8 +57,11 @@ jobs:
                       stocks[code] = {
                           "name": str(pick(row, ["Name","證券名稱"])).strip(),
                           "market": "上市",
-                          "close": price(pick(row, ["ClosingPrice","收盤價"]))
+                          "close": price(pick(row, ["ClosingPrice","收盤價"])),
+                          "date": normalize_date(pick(row, ["Date","日期"]))
                       }
+                      if stocks[code]["date"]:
+                          trading_dates.append(stocks[code]["date"])
               sources.append("臺灣證券交易所")
           except Exception as e:
               print("TWSE failed:", e)
@@ -64,8 +74,11 @@ jobs:
                       stocks[code] = {
                           "name": str(pick(row, ["CompanyName","Name","證券名稱"])).strip(),
                           "market": "上櫃",
-                          "close": price(pick(row, ["Close","ClosingPrice","收盤價"]))
+                          "close": price(pick(row, ["Close","ClosingPrice","收盤價"])),
+                          "date": normalize_date(pick(row, ["Date","TradeDate","日期"]))
                       }
+                      if stocks[code]["date"]:
+                          trading_dates.append(stocks[code]["date"])
               sources.append("證券櫃檯買賣中心")
           except Exception as e:
               print("TPEx failed:", e)
@@ -75,6 +88,8 @@ jobs:
 
           payload = {
               "updatedAt": datetime.now(timezone.utc).isoformat(),
+              "tradingDate": max(trading_dates) if trading_dates else None,
+              "dataType": "official-close",
               "sources": sources,
               "stocks": stocks
           }
