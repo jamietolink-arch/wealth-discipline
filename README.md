@@ -1,46 +1,31 @@
-# 財富紀律 V3 正式版
+# 財富紀律 V4
 
-這不是看盤或技術分析工具，而是「價格到了以後，該買多少、賣多少、轉出多少」的策略執行工具。
+## V4 的關鍵改進
+瀏覽器不再直接連證交所與櫃買中心，而是由 GitHub Actions 每個交易日抓取官方資料，寫入同一個網站的 `market-data.json`。前端讀取同網域檔案，可避免瀏覽器跨網域限制。
 
-## 功能
-- 首頁只顯示達到條件的建議操作
-- 建議明確顯示單價與股數
-- 上市／上櫃股票代號查詢與盤後收盤價
-- 股票、可投資現金、已轉出三種資產狀態
-- 投入本金與本金回收率
-- 回本前／回本後不同轉出比例
-- 買進、賣出、手續費與證券交易稅估算
-- 實際成交價格與股數修正
-- JSON 匯出與匯入
-- 手機 PWA 基礎支援
+## 上傳方式
+請把壓縮檔內的所有內容上傳到 Repository 根目錄，包含：
+- `.github/workflows/update-market-data.yml`
+- `index.html`
+- `styles.css`
+- `app.js`
+- `manifest.json`
+- `sw.js`
+- `market-data.json`
+- `README.md`
 
-## GitHub 上傳
-在 Repository 頁面按「新增文件 / Add file」→「Upload files」，將本資料夾內的下列檔案全部拖入：
-- index.html
-- styles.css
-- app.js
-- manifest.json
-- sw.js
-- README.md
+注意：`.github` 是資料夾，請連同資料夾結構一起上傳。
 
-提交到 main 分支。
+## 上傳後第一次取得市場資料
+1. Repository 上方點 `Actions`
+2. 左側點 `Update Taiwan market data`
+3. 點右側 `Run workflow`
+4. 再按綠色 `Run workflow`
+5. 等約 1–2 分鐘
+6. 回到網站重新整理
 
-## GitHub Pages
-Repository → 設定 Settings → Pages
-- Source：Deploy from a branch
-- Branch：main
-- Folder：/(root)
-- Save
+之後每週一至週五會自動更新一次。
 
-稍候幾分鐘後，網站網址通常為：
-https://你的帳號.github.io/你的儲存庫網址名稱/
-
-## 資料來源
-- 臺灣證券交易所 OpenAPI：上市個股日成交資訊
-- 證券櫃檯買賣中心 OpenAPI：上櫃股票行情
-
-公開資料屬盤後行情，不是券商即時成交報價。
-
-## 重要限制
-網站程式可同時在 Windows 與 Android 使用，但資料使用瀏覽器 LocalStorage，因此兩台裝置不會自動同步。
-請在換裝置前匯出 JSON，再於另一台裝置匯入。
+## 目前限制
+- 市場資料是盤後收盤資料，不是券商即時報價。
+- Windows 與 Android 的交易資料保存在各自瀏覽器，仍需透過 JSON 備份搬移。
